@@ -4,9 +4,10 @@ spring:
   application:
     name: inmobi-test-java
   datasource:
-    url: ${DATABASE_URL:jdbc:h2:mem:guess_game;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;CASE_INSENSITIVE_IDENTIFIERS=TRUE}
-    username: ${DATABASE_USERNAME:sa}
-    password: ${DATABASE_PASSWORD:}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
   liquibase:
     enabled: true
     change-log: classpath:db/changelog/master.xml
@@ -47,19 +48,21 @@ management:
 
 app:
   auth:
-    otp-bypass-enabled: ${OTP_BYPASS_ENABLED:true}
+    otp-bypass-enabled: ${OTP_BYPASS_ENABLED}
+  game:
+    win-rate: ${GAME_WIN_RATE}
   jwt:
-    secret: ${JWT_SECRET:MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=}
-    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+    secret: ${JWT_SECRET}
+    expiration-ms: ${JWT_EXPIRATION_MS}
   payment:
     stripe:
-      secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
-      webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_placeholder}
-      api-base-url: ${STRIPE_API_BASE_URL:https://api.stripe.com}
-      success-url: ${PAYMENT_SUCCESS_URL:http://localhost:5173/payment/success?session_id={CHECKOUT_SESSION_ID}}
-      cancel-url: ${PAYMENT_CANCEL_URL:http://localhost:5173/payment/cancel}
-      currency: ${PAYMENT_CURRENCY:usd}
-      turn-package-amount: ${PAYMENT_TURN_PACKAGE_AMOUNT:199}
+      secret-key: ${STRIPE_SECRET_KEY}
+      webhook-secret: ${STRIPE_WEBHOOK_SECRET}
+      api-base-url: ${STRIPE_API_BASE_URL}
+      success-url: ${PAYMENT_SUCCESS_URL}
+      cancel-url: ${PAYMENT_CANCEL_URL}
+      currency: ${PAYMENT_CURRENCY}
+      turn-package-amount: ${PAYMENT_TURN_PACKAGE_AMOUNT}
 
 ---
 spring:
@@ -67,7 +70,7 @@ spring:
     activate:
       on-profile: postgres
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://localhost:5440/inmobi_test_java}
-    username: ${DATABASE_USERNAME:postgres}
-    password: ${DATABASE_PASSWORD:postgres}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver

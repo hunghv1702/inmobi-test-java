@@ -2,6 +2,7 @@ export const APP_CONFIG = {
   API_BASE_URL: import.meta.env.VITE_API_BASE_URL || '',
   STORAGE_KEYS: {
     AUTH_TOKEN: 'guess_royale_auth_token',
+    REFRESH_TOKEN: 'guess_royale_refresh_token',
   },
   GAME: {
     MIN_NUMBER: 1,

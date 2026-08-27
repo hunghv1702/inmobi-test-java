@@ -46,13 +46,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       logout();
     };
 
+    const handleTokenRefreshed = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      setToken(customEvent.detail);
+    };
+
     window.addEventListener('auth:unauthorized', handleUnauthorized);
-    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
+    window.addEventListener('auth:tokenRefreshed', handleTokenRefreshed);
+    return () => {
+      window.removeEventListener('auth:unauthorized', handleUnauthorized);
+      window.removeEventListener('auth:tokenRefreshed', handleTokenRefreshed);
+    };
   }, [token]);
 
   const login = async (email: string, pass: string) => {
     const authData = await authApi.login(email, pass);
     localStorage.setItem(APP_CONFIG.STORAGE_KEYS.AUTH_TOKEN, authData.accessToken);
+    localStorage.setItem(APP_CONFIG.STORAGE_KEYS.REFRESH_TOKEN, authData.refreshToken);
     setToken(authData.accessToken);
     const profile = await authApi.getMe();
     setUser(profile);
@@ -64,6 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem(APP_CONFIG.STORAGE_KEYS.AUTH_TOKEN);
+    localStorage.removeItem(APP_CONFIG.STORAGE_KEYS.REFRESH_TOKEN);
     setToken(null);
     setUser(null);
   };

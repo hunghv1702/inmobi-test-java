@@ -7,7 +7,7 @@ import com.hunghv.inmobitestjava.generated.model.GuessResponse;
 import com.hunghv.inmobitestjava.generated.model.LeaderboardApiResponse;
 import com.hunghv.inmobitestjava.generated.model.LeaderboardResponse;
 import com.hunghv.inmobitestjava.mapper.ApiResponseMapper;
-import com.hunghv.inmobitestjava.service.IGameService;
+import com.hunghv.inmobitestjava.service.GameService;
 import com.hunghv.inmobitestjava.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GameController implements GameApi {
 
-    private final IGameService gameService;
+    private final GameService gameService;
     private final ApiResponseMapper apiResponseMapper;
 
     @Override

@@ -45,9 +45,13 @@ class LeaderboardIntegrationTest {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    @Autowired
+    private com.hunghv.inmobitestjava.repository.RefreshTokenRepository refreshTokenRepository;
+
     @BeforeEach
     void cleanDatabase() {
         paymentTransactionRepository.deleteAll();
+        refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 

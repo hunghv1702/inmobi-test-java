@@ -1,6 +1,6 @@
 package com.hunghv.inmobitestjava.service.impl;
 
-import com.hunghv.inmobitestjava.service.IOtpService;
+import com.hunghv.inmobitestjava.service.OtpService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -13,7 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
-public class OtpService implements IOtpService {
+public class OtpServiceImpl implements OtpService {
 
     private static final int OTP_LENGTH = 6;
     private static final long OTP_VALIDITY_SECONDS = 300; // 5 minutes

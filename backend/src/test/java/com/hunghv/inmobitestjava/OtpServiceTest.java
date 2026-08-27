@@ -1,6 +1,6 @@
 package com.hunghv.inmobitestjava;
 
-import com.hunghv.inmobitestjava.service.impl.OtpService;
+import com.hunghv.inmobitestjava.service.impl.OtpServiceImpl;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -14,7 +14,7 @@ class OtpServiceTest {
     @Test
     @DisplayName("Should generate and validate OTP correctly when bypass is disabled")
     void testNormalOtpFlow() {
-        OtpService otpService = new OtpService();
+        OtpServiceImpl otpService = new OtpServiceImpl();
         ReflectionTestUtils.setField(otpService, "otpBypassEnabled", false);
 
         String email = "player@example.com";
@@ -31,7 +31,7 @@ class OtpServiceTest {
     @Test
     @DisplayName("Should accept any OTP code when bypass mode is enabled via environment variable")
     void testBypassOtpFlow() {
-        OtpService otpService = new OtpService();
+        OtpServiceImpl otpService = new OtpServiceImpl();
         ReflectionTestUtils.setField(otpService, "otpBypassEnabled", true);
 
         String email = "player@example.com";

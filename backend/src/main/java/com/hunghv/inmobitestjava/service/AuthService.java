@@ -7,12 +7,15 @@ import com.hunghv.inmobitestjava.generated.model.LoginRequest;
 import com.hunghv.inmobitestjava.generated.model.RegisterRequest;
 import com.hunghv.inmobitestjava.generated.model.RegisterResponse;
 import com.hunghv.inmobitestjava.generated.model.ResetPasswordRequest;
+import com.hunghv.inmobitestjava.generated.model.TokenRefreshRequest;
 
-public interface IAuthService {
+public interface AuthService {
 
     RegisterResponse register(RegisterRequest request);
 
     AuthResponse login(LoginRequest request);
+
+    AuthResponse refresh(TokenRefreshRequest request);
 
     ForgotPasswordResponse requestForgotPasswordOtp(ForgotPasswordRequest request);
 

@@ -5,7 +5,7 @@ import com.hunghv.inmobitestjava.generated.model.CreateTurnPackageCheckoutReques
 import com.hunghv.inmobitestjava.generated.model.PaymentCheckoutResponse;
 import com.hunghv.inmobitestjava.generated.model.PaymentConfirmationResponse;
 
-public interface IPaymentService {
+public interface PaymentService {
 
     PaymentCheckoutResponse createTurnPackageCheckout(Long userId, CreateTurnPackageCheckoutRequest request);
 

@@ -1,6 +1,6 @@
 package com.hunghv.inmobitestjava.controller;
 
-import com.hunghv.inmobitestjava.service.IPaymentService;
+import com.hunghv.inmobitestjava.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class StripeWebhookController {
 
-    private final IPaymentService paymentService;
+    private final PaymentService paymentService;
 
     @PostMapping("/stripe")
     public ResponseEntity<Void> handleStripeWebhook(

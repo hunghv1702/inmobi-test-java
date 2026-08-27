@@ -18,4 +18,6 @@ public class JwtProperties {
 
     @Positive
     private long expirationMs;
+
+    private long refreshTokenExpirationMs = 604800000L; // Default 7 days
 }

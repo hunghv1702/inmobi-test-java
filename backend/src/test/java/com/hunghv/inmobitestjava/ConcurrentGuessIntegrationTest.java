@@ -45,9 +45,13 @@ class ConcurrentGuessIntegrationTest {
     @Autowired
     private PaymentTransactionRepository paymentTransactionRepository;
 
+    @Autowired
+    private com.hunghv.inmobitestjava.repository.RefreshTokenRepository refreshTokenRepository;
+
     @BeforeEach
     void cleanDatabase() {
         paymentTransactionRepository.deleteAll();
+        refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 

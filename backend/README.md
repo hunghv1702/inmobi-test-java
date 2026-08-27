@@ -68,13 +68,13 @@ Default PostgreSQL settings:
 Database: inmobi_test_java
 Username: postgres
 Password: postgres
-Port: 5432
+Port: 5440
 ```
 
 You can override them with:
 
 ```bash
-DATABASE_URL=jdbc:postgresql://localhost:5432/inmobi_test_java DATABASE_USERNAME=postgres DATABASE_PASSWORD=postgres SPRING_PROFILES_ACTIVE=postgres ./mvnw spring-boot:run
+DATABASE_URL=jdbc:postgresql://localhost:5440/inmobi_test_java DATABASE_USERNAME=postgres DATABASE_PASSWORD=postgres SPRING_PROFILES_ACTIVE=postgres ./mvnw spring-boot:run
 ```
 
 ## Authentication Flow
@@ -115,6 +115,12 @@ Leaderboard:
 
 ```bash
 curl http://localhost:8080/api/v1/leaderboard   -H "Authorization: Bearer $TOKEN"
+```
+
+Buy 5 turns directly (for testing without Stripe):
+
+```bash
+curl -X POST http://localhost:8080/api/v1/buy-turns   -H "Authorization: Bearer $TOKEN"
 ```
 
 ## Stripe Test Payment Flow
@@ -194,6 +200,7 @@ POST /api/v1/auth/login
 GET  /api/v1/me
 POST /api/v1/guess
 GET  /api/v1/leaderboard
+POST /api/v1/buy-turns
 POST /api/v1/payments/turn-packages/checkout
 POST /api/v1/payments/turn-packages/confirm
 ```

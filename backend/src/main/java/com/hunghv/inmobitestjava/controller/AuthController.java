@@ -1,19 +1,9 @@
 package com.hunghv.inmobitestjava.controller;
 
 import com.hunghv.inmobitestjava.generated.api.AuthApi;
-import com.hunghv.inmobitestjava.generated.model.AuthResponse;
-import com.hunghv.inmobitestjava.generated.model.ForgotPasswordRequest;
-import com.hunghv.inmobitestjava.generated.model.ForgotPasswordRequestApiResponse;
-import com.hunghv.inmobitestjava.generated.model.ForgotPasswordResponse;
-import com.hunghv.inmobitestjava.generated.model.LoginApiResponse;
-import com.hunghv.inmobitestjava.generated.model.LoginRequest;
-import com.hunghv.inmobitestjava.generated.model.RegisterApiResponse;
-import com.hunghv.inmobitestjava.generated.model.RegisterRequest;
-import com.hunghv.inmobitestjava.generated.model.RegisterResponse;
-import com.hunghv.inmobitestjava.generated.model.ResetPasswordApiResponse;
-import com.hunghv.inmobitestjava.generated.model.ResetPasswordRequest;
+import com.hunghv.inmobitestjava.generated.model.*;
 import com.hunghv.inmobitestjava.mapper.ApiResponseMapper;
-import com.hunghv.inmobitestjava.service.IAuthService;
+import com.hunghv.inmobitestjava.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController implements AuthApi {
 
-    private final IAuthService authService;
+    private final AuthService authService;
     private final ApiResponseMapper apiResponseMapper;
 
     @Override
@@ -42,6 +32,14 @@ public class AuthController implements AuthApi {
         AuthResponse response = authService.login(request);
         log.info("Successfully logged in user: email={}", request.getEmail());
         return ResponseEntity.ok(apiResponseMapper.toSuccessResponse(response));
+    }
+
+    @Override
+    public ResponseEntity<TokenRefreshApiResponse> refresh(TokenRefreshRequest request) {
+        log.info("Attempting to refresh access token");
+        AuthResponse response = authService.refresh(request);
+        log.info("Successfully refreshed access token");
+        return ResponseEntity.ok(apiResponseMapper.toRefreshResponse(response));
     }
 
     @Override

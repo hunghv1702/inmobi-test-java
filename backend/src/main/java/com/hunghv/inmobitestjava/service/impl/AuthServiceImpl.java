@@ -15,8 +15,8 @@ import com.hunghv.inmobitestjava.generated.model.ResetPasswordRequest;
 import com.hunghv.inmobitestjava.mapper.UserMapper;
 import com.hunghv.inmobitestjava.repository.UserRepository;
 import com.hunghv.inmobitestjava.security.UserPrincipal;
-import com.hunghv.inmobitestjava.service.IAuthService;
-import com.hunghv.inmobitestjava.service.IOtpService;
+import com.hunghv.inmobitestjava.service.AuthService;
+import com.hunghv.inmobitestjava.service.OtpService;
 import com.hunghv.inmobitestjava.service.JwtService;
 import com.hunghv.inmobitestjava.utils.EmailUtils;
 import lombok.RequiredArgsConstructor;
@@ -25,17 +25,25 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.hunghv.inmobitestjava.entity.RefreshToken;
+import com.hunghv.inmobitestjava.generated.model.TokenRefreshRequest;
+import com.hunghv.inmobitestjava.repository.RefreshTokenRepository;
+import com.hunghv.inmobitestjava.security.JwtProperties;
+import java.time.Instant;
+import java.util.UUID;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AuthService implements IAuthService {
+public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final UserMapper userMapper;
-    private final IOtpService otpService;
+    private final OtpService otpService;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final JwtProperties jwtProperties;
 
     @Override
     @Transactional
@@ -51,18 +59,53 @@ public class AuthService implements IAuthService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         String email = EmailUtils.normalizeEmail(request.getEmail());
         UserAccount user = userRepository.findByEmail(email)
-            .orElseThrow(AuthService::invalidCredentials);
+            .orElseThrow(AuthServiceImpl::invalidCredentials);
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             throw invalidCredentials();
         }
 
         log.info("User login successfully: userId={}, email={}", user.getId(), user.getEmail());
-        return userMapper.toAuthResponse(jwtService.generateToken(UserPrincipal.from(user)));
+        
+        String accessToken = jwtService.generateToken(UserPrincipal.from(user));
+        String refreshTokenStr = UUID.randomUUID().toString();
+        Instant expiryDate = Instant.now().plusMillis(jwtProperties.getRefreshTokenExpirationMs());
+        
+        RefreshToken refreshToken = new RefreshToken(user, refreshTokenStr, expiryDate);
+        refreshTokenRepository.save(refreshToken);
+        
+        return userMapper.toAuthResponse(accessToken, refreshTokenStr);
+    }
+
+    @Override
+    @Transactional
+    public AuthResponse refresh(TokenRefreshRequest request) {
+        String oldTokenStr = request.getRefreshToken();
+        
+        RefreshToken oldRefreshToken = refreshTokenRepository.findByTokenForUpdate(oldTokenStr)
+            .orElseThrow(() -> new UnauthorizedException("Invalid refresh token"));
+            
+        if (oldRefreshToken.isExpired()) {
+            refreshTokenRepository.delete(oldRefreshToken);
+            throw new UnauthorizedException("Refresh token has expired");
+        }
+        
+        UserAccount user = oldRefreshToken.getUser();
+        refreshTokenRepository.delete(oldRefreshToken);
+        
+        String newAccessToken = jwtService.generateToken(UserPrincipal.from(user));
+        String newRefreshTokenStr = UUID.randomUUID().toString();
+        Instant expiryDate = Instant.now().plusMillis(jwtProperties.getRefreshTokenExpirationMs());
+        
+        RefreshToken newRefreshToken = new RefreshToken(user, newRefreshTokenStr, expiryDate);
+        refreshTokenRepository.save(newRefreshToken);
+        
+        log.info("Successfully rotated refresh token for user: userId={}", user.getId());
+        return userMapper.toAuthResponse(newAccessToken, newRefreshTokenStr);
     }
 
     @Override

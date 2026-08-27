@@ -8,7 +8,7 @@ import com.hunghv.inmobitestjava.generated.model.PaymentCheckoutResponse;
 import com.hunghv.inmobitestjava.generated.model.PaymentConfirmationApiResponse;
 import com.hunghv.inmobitestjava.generated.model.PaymentConfirmationResponse;
 import com.hunghv.inmobitestjava.mapper.ApiResponseMapper;
-import com.hunghv.inmobitestjava.service.IPaymentService;
+import com.hunghv.inmobitestjava.service.PaymentService;
 import com.hunghv.inmobitestjava.utils.SecurityUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PaymentController implements PaymentApi {
 
-    private final IPaymentService paymentService;
+    private final PaymentService paymentService;
     private final ApiResponseMapper apiResponseMapper;
 
     @Override

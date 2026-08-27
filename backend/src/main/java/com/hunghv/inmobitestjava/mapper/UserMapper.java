@@ -29,8 +29,9 @@ public interface UserMapper {
     GuessResponse toGuessResponse(UserAccount user, int guess, int serverNumber, boolean correct);
 
     @Mapping(target = "accessToken", source = "accessToken")
+    @Mapping(target = "refreshToken", source = "refreshToken")
     @Mapping(target = "tokenType", constant = "Bearer")
-    AuthResponse toAuthResponse(String accessToken);
+    AuthResponse toAuthResponse(String accessToken, String refreshToken);
 
     @Mapping(target = "rank", source = "rank")
     @Mapping(target = "email", source = "view.email")

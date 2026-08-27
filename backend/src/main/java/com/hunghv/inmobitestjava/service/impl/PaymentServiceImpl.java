@@ -21,7 +21,7 @@ import com.hunghv.inmobitestjava.generated.model.PaymentConfirmationResponse;
 import com.hunghv.inmobitestjava.mapper.PaymentMapper;
 import com.hunghv.inmobitestjava.repository.PaymentTransactionRepository;
 import com.hunghv.inmobitestjava.repository.UserRepository;
-import com.hunghv.inmobitestjava.service.IPaymentService;
+import com.hunghv.inmobitestjava.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +40,7 @@ import java.util.HexFormat;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PaymentService implements IPaymentService {
+public class PaymentServiceImpl implements PaymentService {
 
     private final UserRepository userRepository;
     private final PaymentTransactionRepository paymentTransactionRepository;
@@ -51,7 +51,7 @@ public class PaymentService implements IPaymentService {
 
     @Lazy
     @Autowired
-    private PaymentService self;
+    private PaymentServiceImpl self;
 
     @Override
     public PaymentCheckoutResponse createTurnPackageCheckout(Long userId, CreateTurnPackageCheckoutRequest request) {

@@ -38,9 +38,13 @@ class AuthAndGameApiIntegrationTest {
     @Autowired
     private PaymentTransactionRepository paymentTransactionRepository;
 
+    @Autowired
+    private com.hunghv.inmobitestjava.repository.RefreshTokenRepository refreshTokenRepository;
+
     @BeforeEach
     void cleanDatabase() {
         paymentTransactionRepository.deleteAll();
+        refreshTokenRepository.deleteAll();
         userRepository.deleteAll();
     }
 
@@ -156,6 +160,26 @@ class AuthAndGameApiIntegrationTest {
     }
 
     @Test
+    @DisplayName("Should buy turns directly")
+    void shouldBuyTurnsDirectly() throws Exception {
+        String registerBody = objectMapper.writeValueAsString(Map.of(
+            "email", "buy-turns-test@example.com",
+            "password", "secret123"
+        ));
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(registerBody))
+            .andExpect(status().isCreated());
+
+        String token = login("buy-turns-test@example.com", "secret123");
+
+        mockMvc.perform(post("/api/v1/buy-turns")
+                .header("Authorization", "Bearer " + token))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.turns").value(5));
+    }
+
+    @Test
     @DisplayName("Should reject invalid credentials")
     void shouldRejectInvalidCredentials() throws Exception {
         mockMvc.perform(post("/api/v1/auth/register")
@@ -174,6 +198,63 @@ class AuthAndGameApiIntegrationTest {
                 ))))
             .andExpect(status().isUnauthorized())
             .andExpect(jsonPath("$.message").value("Email or password is incorrect"));
+    }
+
+    @Test
+    @DisplayName("Should login and perform refresh token rotation (RTR) successfully")
+    void shouldRotateRefreshToken() throws Exception {
+        String registerBody = objectMapper.writeValueAsString(Map.of(
+            "email", "refresh-test@example.com",
+            "password", "secret123"
+        ));
+        mockMvc.perform(post("/api/v1/auth/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(registerBody))
+            .andExpect(status().isCreated());
+
+        String loginResponse = mockMvc.perform(post("/api/v1/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(Map.of(
+                    "email", "refresh-test@example.com",
+                    "password", "secret123"
+                ))))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
+            .andExpect(jsonPath("$.data.refreshToken").isNotEmpty())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        JsonNode loginNode = objectMapper.readTree(loginResponse).get("data");
+        String firstAccessToken = loginNode.get("accessToken").asText();
+        String firstRefreshToken = loginNode.get("refreshToken").asText();
+
+        String refreshBody = objectMapper.writeValueAsString(Map.of("refreshToken", firstRefreshToken));
+        String refreshResponse = mockMvc.perform(post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(refreshBody))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.accessToken").isNotEmpty())
+            .andExpect(jsonPath("$.data.refreshToken").isNotEmpty())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+        JsonNode refreshNode = objectMapper.readTree(refreshResponse).get("data");
+        String secondAccessToken = refreshNode.get("accessToken").asText();
+        String secondRefreshToken = refreshNode.get("refreshToken").asText();
+
+        assertThat(secondRefreshToken).isNotEqualTo(firstRefreshToken);
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(refreshBody))
+            .andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/api/v1/me")
+                .header("Authorization", "Bearer " + secondAccessToken))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.email").value("refresh-test@example.com"));
     }
 
     private String login(String email, String password) throws Exception {

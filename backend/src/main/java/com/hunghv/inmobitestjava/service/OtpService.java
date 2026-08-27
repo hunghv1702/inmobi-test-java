@@ -1,6 +1,6 @@
 package com.hunghv.inmobitestjava.service;
 
-public interface IOtpService {
+public interface OtpService {
 
     String generateOtp(String email);
 

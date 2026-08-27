@@ -7,23 +7,29 @@ import com.hunghv.inmobitestjava.generated.model.GuessResponse;
 import com.hunghv.inmobitestjava.generated.model.LeaderboardResponse;
 import com.hunghv.inmobitestjava.mapper.UserMapper;
 import com.hunghv.inmobitestjava.repository.UserRepository;
-import com.hunghv.inmobitestjava.service.IGameService;
+import com.hunghv.inmobitestjava.service.GameService;
 import com.hunghv.inmobitestjava.service.RandomNumberGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
+import org.springframework.beans.factory.annotation.Value;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class GameService implements IGameService {
+public class GameServiceImpl implements GameService {
 
     private final UserRepository userRepository;
     private final RandomNumberGenerator randomNumberGenerator;
     private final UserMapper userMapper;
+
+    @Value("${app.game.win-rate:0.05}")
+    private double winRate;
 
     @Override
     @Transactional
@@ -31,14 +37,28 @@ public class GameService implements IGameService {
         UserAccount user = getUserForUpdate(userId);
         user.consumeTurn();
 
-        int serverNumber = randomNumberGenerator.nextInt(GameConstant.MIN_NUMBER, GameConstant.MAX_NUMBER);
+        boolean shouldWin = ThreadLocalRandom.current().nextDouble() < winRate;
+        int serverNumber;
+        if (shouldWin) {
+            serverNumber = guess;
+        } else {
+            List<Integer> wrongNumbers = new ArrayList<>();
+            for (int i = GameConstant.MIN_NUMBER; i <= GameConstant.MAX_NUMBER; i++) {
+                if (i != guess) {
+                    wrongNumbers.add(i);
+                }
+            }
+            int randomIndex = ThreadLocalRandom.current().nextInt(wrongNumbers.size());
+            serverNumber = wrongNumbers.get(randomIndex);
+        }
+
         boolean correct = guess == serverNumber;
         if (correct) {
             user.increaseScore();
         }
 
-        log.info("Guess processed: userId={}, guess={}, serverNumber={}, correct={}, score={}, turns={}",
-            userId, guess, serverNumber, correct, user.getScore(), user.getTurns());
+        log.info("Guess processed (winRate={}): userId={}, guess={}, serverNumber={}, correct={}, score={}, turns={}",
+                winRate, userId, guess, serverNumber, correct, user.getScore(), user.getTurns());
         return userMapper.toGuessResponse(user, guess, serverNumber, correct);
     }
 
@@ -50,7 +70,7 @@ public class GameService implements IGameService {
 
     private UserAccount getUserForUpdate(Long userId) {
         return userRepository.findByIdForUpdate(userId)
-            .orElseThrow(() -> userNotFound(userId));
+                .orElseThrow(() -> userNotFound(userId));
     }
 
     private static ResourceNotFoundException userNotFound(Long userId) {

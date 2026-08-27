@@ -18,6 +18,7 @@ export interface ApiErrorData {
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken: string;
   tokenType: string;
 }
 

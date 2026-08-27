@@ -5,7 +5,7 @@ import com.hunghv.inmobitestjava.generated.model.LeaderboardResponse;
 
 import java.util.List;
 
-public interface IGameService {
+public interface GameService {
 
     GuessResponse guess(Long userId, int guess);
 
