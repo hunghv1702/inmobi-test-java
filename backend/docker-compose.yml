@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: inmobi-test-java-postgres
+    environment:
+      POSTGRES_DB: inmobi_test_java
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5440:5432"
+    volumes:
+      - ./postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d inmobi_test_java"]
+      interval: 5s
+      timeout: 3s
+      retries: 10

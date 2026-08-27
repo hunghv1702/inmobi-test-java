@@ -1,0 +1,59 @@
+package com.hunghv.inmobitestjava.service.impl;
+
+import com.hunghv.inmobitestjava.constant.GameConstant;
+import com.hunghv.inmobitestjava.entity.UserAccount;
+import com.hunghv.inmobitestjava.exception.ResourceNotFoundException;
+import com.hunghv.inmobitestjava.generated.model.GuessResponse;
+import com.hunghv.inmobitestjava.generated.model.LeaderboardResponse;
+import com.hunghv.inmobitestjava.mapper.UserMapper;
+import com.hunghv.inmobitestjava.repository.UserRepository;
+import com.hunghv.inmobitestjava.service.IGameService;
+import com.hunghv.inmobitestjava.service.RandomNumberGenerator;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class GameService implements IGameService {
+
+    private final UserRepository userRepository;
+    private final RandomNumberGenerator randomNumberGenerator;
+    private final UserMapper userMapper;
+
+    @Override
+    @Transactional
+    public GuessResponse guess(Long userId, int guess) {
+        UserAccount user = getUserForUpdate(userId);
+        user.consumeTurn();
+
+        int serverNumber = randomNumberGenerator.nextInt(GameConstant.MIN_NUMBER, GameConstant.MAX_NUMBER);
+        boolean correct = guess == serverNumber;
+        if (correct) {
+            user.increaseScore();
+        }
+
+        log.info("Guess processed: userId={}, guess={}, serverNumber={}, correct={}, score={}, turns={}",
+            userId, guess, serverNumber, correct, user.getScore(), user.getTurns());
+        return userMapper.toGuessResponse(user, guess, serverNumber, correct);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<LeaderboardResponse> getLeaderboard() {
+        return userMapper.toLeaderboardResponses(userRepository.findTop10ByOrderByScoreDescIdAsc());
+    }
+
+    private UserAccount getUserForUpdate(Long userId) {
+        return userRepository.findByIdForUpdate(userId)
+            .orElseThrow(() -> userNotFound(userId));
+    }
+
+    private static ResourceNotFoundException userNotFound(Long userId) {
+        return new ResourceNotFoundException("User %d was not found".formatted(userId));
+    }
+}

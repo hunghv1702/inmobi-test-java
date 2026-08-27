@@ -1,0 +1,542 @@
+openapi: 3.0.3
+info:
+  title: InMobi Test Java - Guess Number Game API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+paths:
+  /api/v1/auth/register:
+    post:
+      tags: [Auth]
+      operationId: register
+      security: []
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RegisterApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /api/v1/auth/login:
+    post:
+      tags: [Auth]
+      operationId: login
+      security: []
+      summary: Login and receive a JWT access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: JWT token returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/auth/forgot-password/request:
+    post:
+      tags: [Auth]
+      operationId: requestForgotPasswordOtp
+      security: []
+      summary: Request a password reset OTP sent to email (simulated)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForgotPasswordRequest'
+      responses:
+        '200':
+          description: OTP generated and email simulated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForgotPasswordRequestApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/auth/forgot-password/reset:
+    post:
+      tags: [Auth]
+      operationId: resetPasswordWithOtp
+      security: []
+      summary: Reset password using OTP code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Password reset successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResetPasswordApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /api/v1/me:
+    get:
+      tags: [User]
+      operationId: me
+      summary: Get current user profile
+      responses:
+        '200':
+          description: Current user state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUserApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/guess:
+    post:
+      tags: [Game]
+      operationId: guess
+      summary: Guess a number between 1 and 5
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GuessRequest'
+      responses:
+        '200':
+          description: Guess result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GuessApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /api/v1/leaderboard:
+    get:
+      tags: [Game]
+      operationId: leaderboard
+      summary: Get top 10 users by score
+      responses:
+        '200':
+          description: Leaderboard rows
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderboardApiResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v1/payments/turn-packages/checkout:
+    post:
+      tags: [Payment]
+      operationId: createTurnPackageCheckout
+      summary: Create a Stripe Checkout session for buying 5 turns
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTurnPackageCheckoutRequest'
+      responses:
+        '200':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCheckoutApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+  /api/v1/payments/turn-packages/confirm:
+    post:
+      tags: [Payment]
+      operationId: confirmTurnPackagePayment
+      summary: Verify a Stripe Checkout session and grant turns after payment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmTurnPackagePaymentRequest'
+      responses:
+        '200':
+          description: Payment confirmation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentConfirmationApiResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '502':
+          $ref: '#/components/responses/BadGateway'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApiResponse'
+    Unauthorized:
+      description: Authentication is required or invalid
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApiResponse'
+    Conflict:
+      description: Request conflicts with current state
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApiResponse'
+    NotFound:
+      description: Resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApiResponse'
+    BadGateway:
+      description: Payment provider error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorApiResponse'
+  schemas:
+    BaseResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: integer
+          format: int32
+          example: 200
+        message:
+          type: string
+          example: Success
+    ErrorApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              nullable: true
+              allOf:
+                - $ref: '#/components/schemas/ApiErrorDetail'
+    RegisterApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/RegisterResponse'
+    LoginApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/AuthResponse'
+    ForgotPasswordRequestApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/ForgotPasswordResponse'
+    ResetPasswordApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/ForgotPasswordResponse'
+    CurrentUserApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/CurrentUserResponse'
+    GuessApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/GuessResponse'
+    PaymentCheckoutApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/PaymentCheckoutResponse'
+    PaymentConfirmationApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              $ref: '#/components/schemas/PaymentConfirmationResponse'
+    LeaderboardApiResponse:
+      allOf:
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          required: [data]
+          properties:
+            data:
+              type: array
+              items:
+                $ref: '#/components/schemas/LeaderboardResponse'
+    ApiErrorDetail:
+      type: object
+      properties:
+        violations:
+          type: array
+          items:
+            type: string
+    RegisterRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+        password:
+          type: string
+          minLength: 6
+          maxLength: 72
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+        password:
+          type: string
+          minLength: 1
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+    ResetPasswordRequest:
+      type: object
+      required: [email, otp, newPassword]
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 255
+        otp:
+          type: string
+          minLength: 1
+          maxLength: 10
+        newPassword:
+          type: string
+          minLength: 6
+          maxLength: 72
+    ForgotPasswordResponse:
+      type: object
+      required: [email, message]
+      properties:
+        email:
+          type: string
+        message:
+          type: string
+    GuessRequest:
+      type: object
+      required: [number]
+      properties:
+        number:
+          type: integer
+          format: int32
+          minimum: 1
+          maximum: 5
+    CreateTurnPackageCheckoutRequest:
+      type: object
+      properties:
+        successUrl:
+          type: string
+          maxLength: 2048
+          description: Frontend URL Stripe redirects to after successful payment. Use {CHECKOUT_SESSION_ID} as placeholder.
+        cancelUrl:
+          type: string
+          maxLength: 2048
+          description: Frontend URL Stripe redirects to after payment cancellation.
+    ConfirmTurnPackagePaymentRequest:
+      type: object
+      required: [checkoutSessionId]
+      properties:
+        checkoutSessionId:
+          type: string
+          minLength: 1
+          maxLength: 255
+    PaymentCheckoutResponse:
+      type: object
+      required: [paymentId, provider, checkoutSessionId, checkoutUrl, status, turns, amount, currency]
+      properties:
+        paymentId:
+          type: integer
+          format: int64
+        provider:
+          type: string
+          example: STRIPE
+        checkoutSessionId:
+          type: string
+        checkoutUrl:
+          type: string
+          format: uri
+        status:
+          type: string
+          example: PENDING
+        turns:
+          type: integer
+          format: int32
+        amount:
+          type: integer
+          format: int64
+        currency:
+          type: string
+          example: usd
+    PaymentConfirmationResponse:
+      type: object
+      required: [paymentId, provider, checkoutSessionId, status, email, turns]
+      properties:
+        paymentId:
+          type: integer
+          format: int64
+        provider:
+          type: string
+          example: STRIPE
+        checkoutSessionId:
+          type: string
+        status:
+          type: string
+          example: PAID
+        email:
+          type: string
+        turns:
+          type: integer
+          format: int32
+    AuthResponse:
+      type: object
+      required: [accessToken, tokenType]
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          example: Bearer
+    RegisterResponse:
+      type: object
+      required: [id, email, score, turns]
+      properties:
+        id:
+          type: integer
+          format: int64
+        email:
+          type: string
+        score:
+          type: integer
+          format: int32
+        turns:
+          type: integer
+          format: int32
+    CurrentUserResponse:
+      type: object
+      required: [email, score, turns]
+      properties:
+        email:
+          type: string
+        score:
+          type: integer
+          format: int32
+        turns:
+          type: integer
+          format: int32
+    GuessResponse:
+      type: object
+      required: [guess, serverNumber, correct, score, turns]
+      properties:
+        guess:
+          type: integer
+          format: int32
+        serverNumber:
+          type: integer
+          format: int32
+        correct:
+          type: boolean
+        score:
+          type: integer
+          format: int32
+        turns:
+          type: integer
+          format: int32
+    LeaderboardResponse:
+      type: object
+      required: [rank, email, score]
+      properties:
+        rank:
+          type: integer
+          format: int32
+        email:
+          type: string
+        score:
+          type: integer
+          format: int32
