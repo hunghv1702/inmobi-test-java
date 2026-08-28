@@ -29,10 +29,10 @@ inmobi-test-java/
 
 Ensure the following tools are installed on your machine:
 
-1.  **Java Development Kit (JDK) 21 or newer** (JDK 21/24 recommended).
-2.  **Node.js (v18.x or newer)** and **npm (v9.x or newer)** to run the Frontend.
-3.  **Docker & Docker Compose** (Optional - only if running a local PostgreSQL database; otherwise, the backend defaults to using an in-memory H2 database).
-4.  **Stripe CLI** (Optional - if you want to forward Stripe webhooks locally for sandboxed checkout testing).
+1. **Java Development Kit (JDK) 21 or newer** (JDK 21/24 recommended).
+2. **Node.js (v18.x or newer)** and **npm (v9.x or newer)** to run the Frontend.
+3. **Docker & Docker Compose** (Optional - only if running a local PostgreSQL database; otherwise, the backend defaults to using an in-memory H2 database).
+4. **Stripe CLI** (Optional - if you want to forward Stripe webhooks locally for sandboxed checkout testing).
 
 ---
 
@@ -155,3 +155,37 @@ curl -X POST http://localhost:8080/api/v1/payments/turn-packages/checkout \
   -H 'Content-Type: application/json' \
   -d '{"successUrl":"http://localhost:5173/payment/success?session_id={CHECKOUT_SESSION_ID}","cancelUrl":"http://localhost:5173/payment/cancel"}'
 ```
+
+---
+
+## 💳 5. Obtaining & Configuring Stripe API Keys (Sandboxed Test Environment)
+
+To test the payment checkout flow and webhooks in local development, you can set up free Stripe Test Keys as follows:
+
+### 1. Get your Stripe Secret Key (`STRIPE_SECRET_KEY`)
+1. Create or log in to your account at the [Stripe Dashboard](https://dashboard.stripe.com/).
+2. Toggle the **Test mode** switch at the top right of the dashboard to **ON** (orange badge).
+3. Navigate to **Developers -> API keys** (or visit `https://dashboard.stripe.com/test/apikeys`).
+4. Copy the **Secret key** (starts with `sk_test_...`).
+5. Open `backend/.env` (or copy from `backend/.env.example`) and set your key:
+   ```env
+   STRIPE_SECRET_KEY=sk_test_your_secret_key_here
+   ```
+
+### 2. Configure Stripe Webhook Secret (`STRIPE_WEBHOOK_SECRET`)
+
+#### Option A: Local Testing with Stripe CLI (Recommended)
+1. Install Stripe CLI (`brew install stripe/stripe-cli/stripe` on macOS).
+2. Authenticate: `stripe login`.
+3. Start forwarding webhooks to your local Spring Boot backend:
+   ```bash
+   stripe listen --forward-to localhost:8080/api/v1/payments/webhook
+   ```
+4. The CLI output will display a signing secret: `Ready! Your webhook signing secret is whsec_...`
+5. Copy this value into `backend/.env`:
+   ```env
+   STRIPE_WEBHOOK_SECRET=whsec_your_webhook_signing_secret_here
+   ```
+
+#### Option B: Direct Testing / Offline Mode
+If no Stripe key is configured or an invalid test key is used, the system safely handles gateway errors gracefully and allows direct turn purchasing via `POST /api/v1/buy-turns` for seamless offline testing.
